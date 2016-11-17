@@ -60,7 +60,7 @@ if [ $OS = "Linux" ]; then
 	# CPUs = Threads per core X cores per socket X sockets
 	CORES_PER_CPU=`cat /proc/cpuinfo | grep -m 1 'cpu cores' | awk '{ print $4 }'`
 	TOTAL_CPUS=`cat /proc/cpuinfo | grep processor | wc -l`
-	if [ "$CORES_PER_CPU" = "0"]; then
+	if [ "$CORES_PER_CPU" = "0" ]; then
 		CORES_PER_CPU=1
 	fi
 	CPUS=$(($CORES_PER_CPU * $TOTAL_CPUS))
