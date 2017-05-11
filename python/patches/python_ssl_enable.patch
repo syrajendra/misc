@@ -1,0 +1,82 @@
+--- Python-2.7.12/setup.py	2016-06-26 03:19:32.000000000 +0530
++++ python/2.7.12/src/Python-2.7.12/setup.py	2017-04-21 16:32:53.057910000 +0530
+@@ -524,7 +524,7 @@
+                 add_dir_to_list(inc_dirs, d)
+             for d in (
+                 '/lib64', '/usr/lib64',
+-                '/lib', '/usr/lib',
++                '/lib', '/usr/lib', '/usr/lib/x86_64-linux-gnu',
+                 ):
+                 add_dir_to_list(lib_dirs, d)
+         exts = []
+@@ -809,10 +809,10 @@
+                                libraries=math_libs) )
+         # Detect SSL support for the socket module (via _ssl)
+         search_for_ssl_incs_in = [
+-                              '/usr/local/ssl/include',
+-                              '/usr/contrib/ssl/include/'
++                              '/usr/include',
++                              '/usr/include/openssl'
+                              ]
+-        ssl_incs = find_file('openssl/ssl.h', inc_dirs,
++        ssl_incs = find_file('openssl/ssl.h', [],
+                              search_for_ssl_incs_in
+                              )
+         if ssl_incs is not None:
+@@ -820,17 +820,17 @@
+                                ['/usr/kerberos/include'])
+             if krb5_h:
+                 ssl_incs += krb5_h
+-        ssl_libs = find_library_file(self.compiler, 'ssl',lib_dirs,
+-                                     ['/usr/local/ssl/lib',
+-                                      '/usr/contrib/ssl/lib/'
++        ssl_libs = find_library_file(self.compiler, 'ssl', [],
++                                     [
++                                      '/usr/lib/x86_64-linux-gnu'
+                                      ] )
+ 
+         if (ssl_incs is not None and
+             ssl_libs is not None):
+             exts.append( Extension('_ssl', ['_ssl.c'],
+                                    include_dirs = ssl_incs,
+-                                   library_dirs = ssl_libs,
+-                                   libraries = ['ssl', 'crypto'],
++                                   library_dirs = [],
++                                   extra_link_args = [ '-lssl', '-lcrypto', '-ldl'],
+                                    depends = ['socketmodule.h']), )
+         else:
+             missing.append('_ssl')
+@@ -868,8 +868,8 @@
+                 # of hash functions from the OpenSSL library.
+                 exts.append( Extension('_hashlib', ['_hashopenssl.c'],
+                                        include_dirs = ssl_incs,
+-                                       library_dirs = ssl_libs,
+-                                       libraries = ['ssl', 'crypto']) )
++                                       library_dirs = [],
++                                       extra_link_args = [ '-lssl', '-lcrypto', '-ldl'],))
+             else:
+                 print ("warning: openssl 0x%08x is too old for _hashlib" %
+                        openssl_ver)
+--- Python-2.7.12/Modules/Setup.dist	2016-06-26 03:19:31.000000000 +0530
++++ python/2.7.12/src/Python-2.7.12/Modules/Setup.dist	2017-04-21 15:57:50.025138000 +0530
+@@ -211,14 +211,15 @@
+ #_csv _csv.c
+ 
+ # Socket module helper for socket(2)
+-#_socket socketmodule.c timemodule.c
++_socket socketmodule.c timemodule.c
+ 
+ # Socket module helper for SSL support; you must comment out the other
+ # socket line above, and possibly edit the SSL variable:
+-#SSL=/usr/local/ssl
+-#_ssl _ssl.c \
+-#	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+-#	-L$(SSL)/lib -lssl -lcrypto
++SSL==/usr
++SSLLIB=/usr/lib/x86_64-linux-gnu/
++_ssl _ssl.c \
++	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
++	-L$(SSLLIB) -lssl -lcrypto
+ 
+ # The crypt module is now disabled by default because it breaks builds
+ # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
